@@ -1,2 +1,3 @@
-# python-tetris
+# PYTHON-tetris
+
 tetris in python
