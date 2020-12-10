@@ -1,5 +1,6 @@
 import curses
 from os import system
+import time
 
 max_grid_height = 20
 max_grid_width = 15
@@ -11,7 +12,8 @@ STRAIGHT_BLOCK_YS = [[0, 0, 0, 0], [0, 1, 2, 3], [0, 0, 0, 0], [0, 1, 2, 3]]
 STRAIGHT_BLOCK_X_OFFSETS = [2, -2, 1, -1]
 STRAIGHT_BLOCK_Y_OFFSETS = [-1, 1, -1, 1]
 rotation_index = 0
-
+frame = 1
+MOVE_FRAME = 10
 block_x = 0
 block_y = 0
 
@@ -53,11 +55,11 @@ while game_run == 1:
     print_background()
     draw_block(STRAIGHT_BLOCK_XS[rotation_index], STRAIGHT_BLOCK_YS[rotation_index], block_x, block_y)
     screen.refresh()
-    system ("sleep 1")
-    if block_y < max_grid_height - 1:
-        block_y += 1
-    else:
-        block_y = max_grid_height - 1
+    if frame % MOVE_FRAME == 0:
+        if block_y < max_grid_height - 1:
+            block_y += 1
+        else:
+            block_y = max_grid_height - 1
 
 
     try:
@@ -66,7 +68,21 @@ while game_run == 1:
         move = ""
 
     if move == "w":
+        block_x += STRAIGHT_BLOCK_X_OFFSETS[rotation_index]
+        block_y += STRAIGHT_BLOCK_Y_OFFSETS[rotation_index]
         rotation_index = (rotation_index + 1) % 4
+
+    if move == "a":
+        block_x -= 1
+
+    if move == "d":
+        block_x += 1
+
+    if move == "s":
+        block_y += 1
 
     if move == "q":
         game_run = 0
+
+    time.sleep(0.033)
+    frame += 1
