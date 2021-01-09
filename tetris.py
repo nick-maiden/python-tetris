@@ -3,15 +3,6 @@ from os import system
 import time
 import random
 
-grid_height = 20
-grid_width = 15
-min_grid_y = 2
-min_grid_x = 5
-game_run = 1
-STANDARD_BLOCK_LENGTH = 4
-
-#STRAIGHT_BLOCK_XS = [0, 1, 2, 3], [2, 2, 2, 2], [0, 1, 2, 3], [3, 3, 3, 3]]
-#STRAIGHT_BLOCK_YS = [[0, 0, 0, 0], [0, 1, 2, 3], [0, 0, 0, 0], [0, 1, 2, 3]]
 STRAIGHT_BLOCK_XS = [[-2, -1, 0, 1], [0, 0, 0, 0], [-2, -1, 0, 1], [-1, -1, -1, -1]]
 STRAIGHT_BLOCK_YS = [[0, 0, 0, 0], [-2, -1, 0, 1], [0, 0, 0, 0], [-2, -1, 0, 1]]
 L_BLOCK_LEFT_XS = [[0, 0, -1, 0], [-1, -1, 0, 1], [0, 1, 0, 0], [-1, 0, 1, 1]]
@@ -20,21 +11,25 @@ L_BLOCK_RIGHT_XS =[[0, 0, 0, 1], [-1, 0, 1, -1], [-1, 0, 0, 0], [1, -1, 0, 1]]
 L_BLOCK_RIGHT_YS = [[-1, 0, 1, 1], [0, 0, 0, 1], [-1, -1, 0, 1], [-1, 0, 0, 0]]
 Z_BLOCK_LEFT_XS = [[-1, 0, 0, 1], [0, -1, 0, -1], [-1, 0, 0, 1], [1, 0, 1, 0]]
 Z_BLOCK_LEFT_YS = [[0, 0, 1, 1], [-1 ,0, 0, 1], [-1, -1, 0, 0], [-1 ,0, 0, 1]]
-
 Z_BLOCK_RIGHT_XS = [[0, 1, -1, 0], [-1, -1, 0, 0], [0, 1, -1, 0], [0, 0, 1, 1]]
 Z_BLOCK_RIGHT_YS = [[0, 0, 1, 1], [-1, 0, 0, 1], [-1, -1, 0, 0], [-1, 0, 0, 1]]
-
 PYRAMID_BLOCK_XS = [[0, -1, 0, 1], [0, 0, 1, 0], [-1, 0, 1, 0], [0, -1, 0, 0]]
 PYRAMID_BLOCK_YS = [[-1, 0, 0, 0], [-1, 0, 0, 1], [0, 0, 0, 1], [-1, 0, 0, 1]]
 SQUARE_BLOCK_XS = [[0, 1, 0, 1], [0, 1, 0, 1], [0, 1, 0, 1], [0, 1, 0, 1]]
 SQUARE_BLOCK_YS = [[0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 1, 1]]
 
+
 BLOCK_XS = [STRAIGHT_BLOCK_XS, L_BLOCK_LEFT_XS, L_BLOCK_RIGHT_XS, Z_BLOCK_LEFT_XS, Z_BLOCK_RIGHT_XS, PYRAMID_BLOCK_XS, SQUARE_BLOCK_XS]
 BLOCK_YS = [STRAIGHT_BLOCK_YS, L_BLOCK_LEFT_YS, L_BLOCK_RIGHT_YS, Z_BLOCK_LEFT_YS, Z_BLOCK_RIGHT_YS, PYRAMID_BLOCK_YS, SQUARE_BLOCK_YS]
 
 
-
 #block_index = random.randint(0, 2)
+grid_height = 20
+grid_width = 15
+min_grid_y = 2
+min_grid_x = 5
+game_run = 1
+STANDARD_BLOCK_LENGTH = 4
 block_index = 3
 NUM_BLOCK_SORTS = 7
 rotation_index = 0
@@ -42,7 +37,7 @@ frame = 1
 MOVE_FRAME = 10
 block_x = 0
 block_y = 0
-#NEGATIVE_VALUE_FACTOR = 2
+
 
 system("clear")
 screen = curses.initscr()
@@ -50,8 +45,12 @@ curses.noecho()
 curses.cbreak()
 curses.curs_set(0)
 
+
+
 def draw_char(x, y, c):
     screen.addstr(y, x*2, c)
+
+
 
 def bump_amount(block_xs):
     f = lambda x: x + block_x
@@ -60,10 +59,37 @@ def bump_amount(block_xs):
     if minimum < 0:
         return -minimum
     maximum = max(new_block_xs)
-    max_grid_x = min_grid_x + grid_width - 1
+    max_grid_x = grid_width - 1
     if maximum > max_grid_x:
-        return (maximum - max_grid_x)
+        return (max_grid_x - maximum)
     return 0
+
+
+
+#def block_drop(BLOCK_YS, block_y):
+#    move_down = 1
+#    i = 0
+#    while i < STANDARD_BLOCK_LENGTH:
+##
+#        if BLOCK_YS[block_index][rotation_index][i] + block_y < grid_height - 1:
+#            if 4 % move_down == 0:
+#                block_y += 1
+#        else:
+#            block_y = (grid_height - 1) - BLOCK_YS[block_index][rotation_index][i]
+#        move_down += 1
+#        i += 1
+
+def block_drop(BLOCK_YS, block_y):
+    move_down = 1
+    i = 0
+    while i < STANDARD_BLOCK_LENGTH:
+        global current_pos
+        current_pos = BLOCK_YS[block_index][rotation_index][i]
+
+        if current_pos + block_y >= (grid_height - 1) - min_grid_y:
+            return 1
+        return 0
+
 
 
 def draw_block(BLOCK_XS, BLOCK_YS, block_x, block_y):
@@ -93,6 +119,10 @@ def print_background():
 
         y += 1
 
+
+
+# MAIN GAME LOOP BELOW
+
 screen.nodelay(True)
 while game_run == 1:
     screen.clear()
@@ -101,15 +131,10 @@ while game_run == 1:
     draw_block(BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index], block_x, block_y)
     screen.refresh()
     if frame % MOVE_FRAME == 0:
-        block_y += 1
-        #i = 0
-        #while i < STANDARD_BLOCK_LENGTH:
-
-        #    if BLOCK_YS[block_index][rotation_index][i] < grid_height - 1:
-        #        block_y += 1
-        #    else:
-        #        block_y = grid_height - 1
-        #    i += 1
+        if block_drop(BLOCK_YS, block_y) == 0:
+            block_y += 1
+        else:
+            block_y = (grid_height - 1) - current_pos - min_grid_y
 
     try:
         move = screen.getkey()

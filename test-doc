@@ -1,32 +1,32 @@
 #for testing function ideas
 
+import curses
+import time
+from os import system
+
+
 array_of_arrays = [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]], [[13, 14, 15], [16, 17, 18]]]
 big_array_index = 0
 little_array_index = 0
+STANDARD_BLOCK_LENGTH = 3
+block_index = 1
+rotation_index = 1
+block_y = 0
+grid_height = 20
+system("clear")
+screen = curses.initscr()
+move_down = 1
 
-print(array_of_arrays[2, 2])
 
-  0 1 2 3 4
-0
-1
-2   *{*}
-3     * *
-4
-  0 1 2 3 4
-0
-1     *
-2   *{*}
-3   *
-4
-  0 1 2 3 4
-0
-1   * *
-2    {*}*
-3
-4
-  0 1 2 3 4
-0
-1       *
-2    {*}*
-3     *
-4
+i = 0
+while i < STANDARD_BLOCK_LENGTH:
+
+    if array_of_arrays[block_index][rotation_index][i] + block_y < grid_height - 1:
+        if 3 % move_down == 0:
+            block_y += 1
+        screen.clear()
+        screen.addstr(5, 10, "%d" % (block_y))
+        screen.refresh()
+        system("sleep 2")
+        move_down += 1
+    i += 1
