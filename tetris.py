@@ -65,30 +65,15 @@ def bump_amount(block_xs):
     return 0
 
 
-
-#def block_drop(BLOCK_YS, block_y):
-#    move_down = 1
-#    i = 0
-#    while i < STANDARD_BLOCK_LENGTH:
-##
-#        if BLOCK_YS[block_index][rotation_index][i] + block_y < grid_height - 1:
-#            if 4 % move_down == 0:
-#                block_y += 1
-#        else:
-#            block_y = (grid_height - 1) - BLOCK_YS[block_index][rotation_index][i]
-#        move_down += 1
-#        i += 1
-
-def block_drop(BLOCK_YS, block_y):
-    global current_pos
+#checks for bottom of board
+#returns True if past the bottom of the board
+def board_bottom_check(BLOCK_YS, block_y):
     current_pos = max(BLOCK_YS)
 
     if current_pos + block_y >= grid_height - 1:
-        return 1
+        return {'current_pos':current_pos,'past_bottom':True}
 
-    return 0
-
-
+    return {'current_pos':current_pos,'past_bottom':False}
 
 
 
@@ -130,8 +115,9 @@ while game_run == 1:
     block_x += bump_amount(BLOCK_XS[block_index][rotation_index])
     if frame % MOVE_FRAME == 0:
         block_y += 1
-    if block_drop(BLOCK_YS[block_index][rotation_index], block_y) != 0:
-        block_y = grid_height - current_pos - 1        
+    result = board_bottom_check(BLOCK_YS[block_index][rotation_index], block_y)
+    if result['past_bottom']:
+        block_y = grid_height - result['current_pos'] - 1
     draw_block(BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index], block_x, block_y)
     screen.refresh()
 
