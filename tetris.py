@@ -80,15 +80,15 @@ def bump_amount(block_xs):
 #        i += 1
 
 def block_drop(BLOCK_YS, block_y):
-    move_down = 1
-    i = 0
-    while i < STANDARD_BLOCK_LENGTH:
-        global current_pos
-        current_pos = BLOCK_YS[block_index][rotation_index][i]
+    global current_pos
+    current_pos = max(BLOCK_YS)
 
-        if current_pos + block_y >= (grid_height - 1) - min_grid_y:
-            return 1
-        return 0
+    if current_pos + block_y >= grid_height - 1:
+        return 1
+
+    return 0
+
+
 
 
 
@@ -128,13 +128,12 @@ while game_run == 1:
     screen.clear()
     print_background()
     block_x += bump_amount(BLOCK_XS[block_index][rotation_index])
+    if frame % MOVE_FRAME == 0:
+        block_y += 1
+    if block_drop(BLOCK_YS[block_index][rotation_index], block_y) != 0:
+        block_y = grid_height - current_pos - 1        
     draw_block(BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index], block_x, block_y)
     screen.refresh()
-    if frame % MOVE_FRAME == 0:
-        if block_drop(BLOCK_YS, block_y) == 0:
-            block_y += 1
-        else:
-            block_y = (grid_height - 1) - current_pos - min_grid_y
 
     try:
         move = screen.getkey()
@@ -161,7 +160,6 @@ while game_run == 1:
     if move == "p":
         block_index = (block_index + 1) % NUM_BLOCK_SORTS
         block_y = 0
-
 
     time.sleep(0.033)
     frame += 1
