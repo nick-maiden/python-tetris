@@ -68,12 +68,20 @@ def bump_amount(block_xs):
 
 #checks for bottom of board
 #returns True if past the bottom of the board
-def board_bottom_check(BLOCK_YS, block_y):
+def board_bottom_check(BLOCK_YS, block_y, saved_block_array_ys, saved_block_array_xs):
     current_pos = max(BLOCK_YS)
+    d = 0
+    while d < STANDARD_BLOCK_LENGTH:
 
-    if current_pos + block_y >= grid_height - 1:
-        return {'current_pos':current_pos,'past_bottom':True}
+        i = 0
+        while i < len(saved_block_array_ys):
+            if current_pos + block_y >= grid_height - 1:
+                return {'current_pos':current_pos,'past_bottom':True}
+            if BLOCK_YS[block_index][rotation_index][d] == saved_block_array_ys[i] and BLOCK_XS[block_index][rotation_index][d] == saved_block_array_xs[i]:
+                return {'current_pos':current_pos,'past_bottom':True}
 
+            i += 1
+        d += 1
     return {'current_pos':current_pos,'past_bottom':False}
 
 
@@ -82,8 +90,7 @@ def block_saver_and_drawer(block_x, block_y):
     while i < len(saved_block_array_xs):
         x = saved_block_array_xs[i] + min_grid_x
         y = saved_block_array_ys[i] + min_grid_y
-        if x >= min_grid_x and x < min_grid_x + grid_width and y >= min_grid_y and y < min_grid_y + grid_height:
-            draw_char(x, y, "*")
+        draw_char(x, y, "*")
 
         i += 1
 
@@ -98,6 +105,20 @@ def draw_block(BLOCK_XS, BLOCK_YS, block_x, block_y):
             draw_char(x, y, "*")
 
         i += 1
+
+#def check_for_overlap(saved_block_array_xs, saved_block_array_ys, BLOCK_XS, BLOCK_YS):
+#    d = 0
+#    while d < STANDARD_BLOCK_LENGTH:
+
+#        i = 0
+#        while i < saved_block_array_ys:
+#            if BLOCK_YS[block_index][rotation_index][d] == saved_block_array_ys[i] and BLOCK_XS[block_index][rotation_index][d] == saved_block_array_xs[i]:
+#                return 1
+#    return 0
+#
+#            i += 1
+#        d += 1
+
 
 
 
@@ -127,7 +148,7 @@ while game_run == 1:
     block_x += bump_amount(BLOCK_XS[block_index][rotation_index])
     if frame % MOVE_FRAME == 0:
         block_y += 1
-    result = board_bottom_check(BLOCK_YS[block_index][rotation_index], block_y)
+    result = board_bottom_check(BLOCK_YS[block_index][rotation_index], block_y, saved_block_array_ys, saved_block_array_xs)
     if result['past_bottom']:
         block_y = grid_height - result['current_pos'] - 1
         final_block_xs = []
