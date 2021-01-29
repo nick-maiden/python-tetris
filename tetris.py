@@ -23,7 +23,6 @@ BLOCK_XS = [STRAIGHT_BLOCK_XS, L_BLOCK_LEFT_XS, L_BLOCK_RIGHT_XS, Z_BLOCK_LEFT_X
 BLOCK_YS = [STRAIGHT_BLOCK_YS, L_BLOCK_LEFT_YS, L_BLOCK_RIGHT_YS, Z_BLOCK_LEFT_YS, Z_BLOCK_RIGHT_YS, PYRAMID_BLOCK_YS, SQUARE_BLOCK_YS]
 
 
-#block_index = random.randint(0, 2)
 grid_height = 20
 grid_width = 15
 min_grid_y = 2
@@ -37,6 +36,8 @@ frame = 1
 MOVE_FRAME = 10
 block_x = 0
 block_y = 0
+saved_block_array_ys = []
+saved_block_array_xs = []
 
 
 system("clear")
@@ -76,15 +77,11 @@ def board_bottom_check(BLOCK_YS, block_y):
     return {'current_pos':current_pos,'past_bottom':False}
 
 
-def block_saver_and_drawer(BLOCK_XS, BLOCK_YS, block_x, block_y):
-    global saved_block_array_xs
-    saved_block_array_xs = []
-    global saved_block_array_ys
-    saved_block_array_ys = []
+def block_saver_and_drawer(block_x, block_y):
     i = 0
     while i < len(saved_block_array_xs):
-        x = saved_block_array_xs[i] + block_x + min_grid_x
-        y = saved_block_array_ys[i] + block_y + min_grid_y
+        x = saved_block_array_xs[i] + min_grid_x
+        y = saved_block_array_ys[i] + min_grid_y
         if x >= min_grid_x and x < min_grid_x + grid_width and y >= min_grid_y and y < min_grid_y + grid_height:
             draw_char(x, y, "*")
 
@@ -133,8 +130,18 @@ while game_run == 1:
     result = board_bottom_check(BLOCK_YS[block_index][rotation_index], block_y)
     if result['past_bottom']:
         block_y = grid_height - result['current_pos'] - 1
-        saved_block_array_xs = saved_block_array_xs + BLOCK_XS[block_index][rotation_index]
-        saved_block_array_ys = saved_block_array_ys + BLOCK_YS[block_index][rotation_index]
+        final_block_xs = []
+        final_block_ys = []
+        i = 0
+        while i < STANDARD_BLOCK_LENGTH:
+            final_block_xs.append(BLOCK_XS[block_index][rotation_index][i] + block_x)
+            final_block_ys.append(BLOCK_YS[block_index][rotation_index][i] + block_y)
+            i += 1
+        saved_block_array_xs = saved_block_array_xs + final_block_xs
+        saved_block_array_ys = saved_block_array_ys + final_block_ys
+        block_index = random.randint(0, 6)
+        block_y = 0
+    block_saver_and_drawer(block_x, block_y)
     draw_block(BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index], block_x, block_y)
     screen.refresh()
 
@@ -160,9 +167,6 @@ while game_run == 1:
     if move == "q":
         game_run = 0
 
-    if move == "p":
-        block_index = (block_index + 1) % NUM_BLOCK_SORTS
-        block_y = 0
 
     time.sleep(0.033)
     frame += 1
