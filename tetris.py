@@ -76,6 +76,21 @@ def board_bottom_check(BLOCK_YS, block_y):
     return {'current_pos':current_pos,'past_bottom':False}
 
 
+def block_saver_and_drawer(BLOCK_XS, BLOCK_YS, block_x, block_y):
+    global saved_block_array_xs
+    saved_block_array_xs = []
+    global saved_block_array_ys
+    saved_block_array_ys = []
+    i = 0
+    while i < len(saved_block_array_xs):
+        x = saved_block_array_xs[i] + block_x + min_grid_x
+        y = saved_block_array_ys[i] + block_y + min_grid_y
+        if x >= min_grid_x and x < min_grid_x + grid_width and y >= min_grid_y and y < min_grid_y + grid_height:
+            draw_char(x, y, "*")
+
+        i += 1
+
+
 
 def draw_block(BLOCK_XS, BLOCK_YS, block_x, block_y):
     i = 0
@@ -118,6 +133,8 @@ while game_run == 1:
     result = board_bottom_check(BLOCK_YS[block_index][rotation_index], block_y)
     if result['past_bottom']:
         block_y = grid_height - result['current_pos'] - 1
+        saved_block_array_xs = saved_block_array_xs + BLOCK_XS[block_index][rotation_index]
+        saved_block_array_ys = saved_block_array_ys + BLOCK_YS[block_index][rotation_index]
     draw_block(BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index], block_x, block_y)
     screen.refresh()
 
