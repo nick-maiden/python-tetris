@@ -38,6 +38,7 @@ block_x = 0
 block_y = 0
 saved_block_array_ys = []
 saved_block_array_xs = []
+z = -1
 
 
 system("clear")
@@ -68,7 +69,7 @@ def bump_amount(block_xs):
 
 #checks for bottom of board
 #returns True if past the bottom of the board
-def board_bottom_check(BLOCK_YS, block_y, saved_block_array_ys, saved_block_array_xs):
+def board_bottom_check(BLOCK_YS, block_y):
     current_pos = max(BLOCK_YS)
     d = 0
     while d < STANDARD_BLOCK_LENGTH:
@@ -76,13 +77,19 @@ def board_bottom_check(BLOCK_YS, block_y, saved_block_array_ys, saved_block_arra
         i = 0
         while i < len(saved_block_array_ys):
             if current_pos + block_y >= grid_height - 1:
-                return {'current_pos':current_pos,'past_bottom':True}
+                #return {'current_pos':current_pos,'past_bottom':True}
+                z = 1
+
             if BLOCK_YS[block_index][rotation_index][d] == saved_block_array_ys[i] and BLOCK_XS[block_index][rotation_index][d] == saved_block_array_xs[i]:
-                return {'current_pos':current_pos,'past_bottom':True}
+                #return {'current_pos':current_pos,'past_bottom':True}
+                z = 1
+
+            else:
+                z = 0
 
             i += 1
         d += 1
-    return {'current_pos':current_pos,'past_bottom':False}
+    #return {'current_pos':current_pos,'past_bottom':False}
 
 
 def block_saver_and_drawer(block_x, block_y):
@@ -148,8 +155,9 @@ while game_run == 1:
     block_x += bump_amount(BLOCK_XS[block_index][rotation_index])
     if frame % MOVE_FRAME == 0:
         block_y += 1
-    result = board_bottom_check(BLOCK_YS[block_index][rotation_index], block_y, saved_block_array_ys, saved_block_array_xs)
-    if result['past_bottom']:
+    result = board_bottom_check(BLOCK_YS[block_index][rotation_index], block_y)
+    #if result['past_bottom']:
+    if z == 1:
         block_y = grid_height - result['current_pos'] - 1
         final_block_xs = []
         final_block_ys = []
