@@ -71,28 +71,23 @@ def bump_amount(block_xs):
 #returns True if past the bottom of the board
 def board_bottom_check(BLOCK_YS, block_y):
     current_pos = max(BLOCK_YS)
-    d = 0
-    while d < STANDARD_BLOCK_LENGTH:
+    if current_pos + block_y >= grid_height - 1:
+        return {'current_pos':current_pos,'past_bottom':True}
+    if len(saved_block_array_ys) > STANDARD_BLOCK_LENGTH:
+        d = 0
+        while d < STANDARD_BLOCK_LENGTH:
+            i = 0
+            while i < len(saved_block_array_ys):
 
-        i = 0
-        while i < len(saved_block_array_ys):
-            if current_pos + block_y >= grid_height - 1:
-                #return {'current_pos':current_pos,'past_bottom':True}
-                z = 1
+                if BLOCK_YS[block_index][rotation_index][d] == saved_block_array_ys[i] and BLOCK_XS[block_index][rotation_index][d] == saved_block_array_xs[i]:
+                    return {'current_pos':current_pos,'past_bottom':True}
 
-            if BLOCK_YS[block_index][rotation_index][d] == saved_block_array_ys[i] and BLOCK_XS[block_index][rotation_index][d] == saved_block_array_xs[i]:
-                #return {'current_pos':current_pos,'past_bottom':True}
-                z = 1
-
-            else:
-                z = 0
-
-            i += 1
-        d += 1
-    #return {'current_pos':current_pos,'past_bottom':False}
+                i += 1
+            d += 1
+    return {'current_pos':current_pos,'past_bottom':False}
 
 
-def block_saver_and_drawer(block_x, block_y):
+def draw_saved_blocks(block_x, block_y):
     i = 0
     while i < len(saved_block_array_xs):
         x = saved_block_array_xs[i] + min_grid_x
@@ -156,8 +151,7 @@ while game_run == 1:
     if frame % MOVE_FRAME == 0:
         block_y += 1
     result = board_bottom_check(BLOCK_YS[block_index][rotation_index], block_y)
-    #if result['past_bottom']:
-    if z == 1:
+    if result['past_bottom']:
         block_y = grid_height - result['current_pos'] - 1
         final_block_xs = []
         final_block_ys = []
@@ -170,7 +164,7 @@ while game_run == 1:
         saved_block_array_ys = saved_block_array_ys + final_block_ys
         block_index = random.randint(0, 6)
         block_y = 0
-    block_saver_and_drawer(block_x, block_y)
+    draw_saved_blocks(block_x, block_y)
     draw_block(BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index], block_x, block_y)
     screen.refresh()
 
