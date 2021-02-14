@@ -29,7 +29,7 @@ min_grid_y = 2
 min_grid_x = 5
 game_run = 1
 STANDARD_BLOCK_LENGTH = 4
-block_index = 3
+block_index = random.randint(0, 6)
 NUM_BLOCK_SORTS = 7
 rotation_index = 0
 frame = 1
@@ -39,7 +39,7 @@ block_y = 0
 saved_block_array_ys = []
 saved_block_array_xs = []
 z = -1
-
+debug_texts = []
 
 system("clear")
 screen = curses.initscr()
@@ -47,7 +47,11 @@ curses.noecho()
 curses.cbreak()
 curses.curs_set(0)
 
-
+def draw_debug():
+    i = 0
+    while i < len(debug_texts):
+        screen.addstr(i, (min_grid_x + grid_width + 1)*2, debug_texts[i])
+        i += 1
 
 def draw_char(x, y, c):
     screen.addstr(y, x*2, c)
@@ -66,24 +70,62 @@ def bump_amount(block_xs):
         return (max_grid_x - maximum)
     return 0
 
+def moving_left_collision_check(block_xs, block_ys):
+    f = lambda x: x + block_x
+    new_block_xs = list(map(f, block_xs))
+    minimum = min(new_block_xs) - 1               #<< -1 is to indicate when we are
+    l = lambda y: y + block_y                     # one step away from a collision
+    new_block_ys = list(map(l, block_ys))
+
+    i = 0
+    while i < STANDARD_BLOCK_LENGTH:
+        d = 0
+        while d < len(saved_block_array_ys):
+            if minimum == saved_block_array_xs[d] and new_block_ys[i] == saved_block_array_ys[d]:
+                result = saved_block_array_xs[d] - minimum
+                return result
+            d += 1
+        i += 1
+    return -1
+
+def moving_right_collision_check(block_xs, block_ys):
+    f = lambda x: x + block_x
+    new_block_xs = list(map(f, block_xs))
+    maximum = max(new_block_xs) + 1               #<< +1 is to indicate when we are
+    l = lambda y: y + block_y                     # one step away from a collision
+    new_block_ys = list(map(l, block_ys))
+
+    i = 0
+    while i < STANDARD_BLOCK_LENGTH:
+        d = 0
+        while d < len(saved_block_array_ys):
+            if maximum == saved_block_array_xs[d] and new_block_ys[i] == saved_block_array_ys[d]:
+                return 1
+            d += 1
+        i += 1
+    return 0
+
+
+
 
 #checks for bottom of board
 #returns True if past the bottom of the board
-def board_bottom_check(BLOCK_YS, block_y):
-    current_pos = max(BLOCK_YS)
+def board_bottom_check(block_ys, block_xs, block_y):
+    current_pos = max(block_ys)
     if current_pos + block_y >= grid_height - 1:
         return {'current_pos':current_pos,'past_bottom':True}
-    if len(saved_block_array_ys) > STANDARD_BLOCK_LENGTH:
-        d = 0
-        while d < STANDARD_BLOCK_LENGTH:
-            i = 0
-            while i < len(saved_block_array_ys):
+    d = 0
+    while d < STANDARD_BLOCK_LENGTH:
+        i = 0
+        while i < len(saved_block_array_ys):
+            abs_block_y = block_ys[d] + block_y
+            abs_block_x = block_xs[d] + block_x
+            if abs_block_y == saved_block_array_ys[i] - 1 and abs_block_x == saved_block_array_xs[i]:
+                return {'current_pos':current_pos,'past_bottom':False, 'collision_y':abs_block_y}
 
-                if BLOCK_YS[block_index][rotation_index][d] == saved_block_array_ys[i] and BLOCK_XS[block_index][rotation_index][d] == saved_block_array_xs[i]:
-                    return {'current_pos':current_pos,'past_bottom':True}
 
-                i += 1
-            d += 1
+            i += 1
+        d += 1
     return {'current_pos':current_pos,'past_bottom':False}
 
 
@@ -107,20 +149,6 @@ def draw_block(BLOCK_XS, BLOCK_YS, block_x, block_y):
             draw_char(x, y, "*")
 
         i += 1
-
-#def check_for_overlap(saved_block_array_xs, saved_block_array_ys, BLOCK_XS, BLOCK_YS):
-#    d = 0
-#    while d < STANDARD_BLOCK_LENGTH:
-
-#        i = 0
-#        while i < saved_block_array_ys:
-#            if BLOCK_YS[block_index][rotation_index][d] == saved_block_array_ys[i] and BLOCK_XS[block_index][rotation_index][d] == saved_block_array_xs[i]:
-#                return 1
-#    return 0
-#
-#            i += 1
-#        d += 1
-
 
 
 
@@ -150,9 +178,11 @@ while game_run == 1:
     block_x += bump_amount(BLOCK_XS[block_index][rotation_index])
     if frame % MOVE_FRAME == 0:
         block_y += 1
-    result = board_bottom_check(BLOCK_YS[block_index][rotation_index], block_y)
+    result = board_bottom_check(BLOCK_YS[block_index][rotation_index], BLOCK_XS[block_index][rotation_index], block_y)
     if result['past_bottom']:
         block_y = grid_height - result['current_pos'] - 1
+
+    if 'collision_y' in result or result['past_bottom']:
         final_block_xs = []
         final_block_ys = []
         i = 0
@@ -166,6 +196,7 @@ while game_run == 1:
         block_y = 0
     draw_saved_blocks(block_x, block_y)
     draw_block(BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index], block_x, block_y)
+    draw_debug()
     screen.refresh()
 
     try:
@@ -174,12 +205,13 @@ while game_run == 1:
         move = ""
 
     if move == "w":
-        #block_x += STRAIGHT_BLOCK_X_OFFSETS[rotation_index]
-        #block_y += STRAIGHT_BLOCK_Y_OFFSETS[rotation_index]
+        if moving_left_collision_check(BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index]) != -1:
+            block_x += moving_left_collision_check(BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index])
         rotation_index = (rotation_index + 1) % 4
 
     if move == "a":
-        block_x -= 1
+        if moving_left_collision_check(BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index]) == -1:
+            block_x -= 1
 
     if move == "d":
         block_x += 1
