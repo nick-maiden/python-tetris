@@ -70,40 +70,40 @@ def bump_amount(block_xs):
         return (max_grid_x - maximum)
     return 0
 
-def moving_left_collision_check(block_xs, block_ys):
+def collision_check(block_x, block_y, block_xs, block_ys):
     f = lambda x: x + block_x
-    new_block_xs = list(map(f, block_xs))
-    minimum = min(new_block_xs) - 1               #<< -1 is to indicate when we are
-    l = lambda y: y + block_y                     # one step away from a collision
-    new_block_ys = list(map(l, block_ys))
+    abs_block_xs = list(map(f, block_xs))
+    l = lambda y: y + block_y
+    abs_block_ys = list(map(l, block_ys))
 
     i = 0
     while i < STANDARD_BLOCK_LENGTH:
         d = 0
+        if abs_block_ys[i] >= grid_height:
+            return True
         while d < len(saved_block_array_ys):
-            if minimum == saved_block_array_xs[d] and new_block_ys[i] == saved_block_array_ys[d]:
-                result = saved_block_array_xs[d] - minimum
-                return result
+            if abs_block_xs[i] == saved_block_array_xs[d] and abs_block_ys[i] == saved_block_array_ys[d]:
+                return True
             d += 1
         i += 1
-    return -1
+    return False
 
-def moving_right_collision_check(block_xs, block_ys):
-    f = lambda x: x + block_x
-    new_block_xs = list(map(f, block_xs))
-    maximum = max(new_block_xs) + 1               #<< +1 is to indicate when we are
-    l = lambda y: y + block_y                     # one step away from a collision
-    new_block_ys = list(map(l, block_ys))
-
-    i = 0
-    while i < STANDARD_BLOCK_LENGTH:
-        d = 0
-        while d < len(saved_block_array_ys):
-            if maximum == saved_block_array_xs[d] and new_block_ys[i] == saved_block_array_ys[d]:
-                return 1
-            d += 1
-        i += 1
-    return 0
+# def moving_right_collision_check(block_xs, block_ys):
+#     f = lambda x: x + block_x
+#     new_block_xs = list(map(f, block_xs))
+#     maximum = max(new_block_xs) + 1               #<< +1 is to indicate when we are
+#     l = lambda y: y + block_y                     # one step away from a collision
+#     new_block_ys = list(map(l, block_ys))
+#
+#     i = 0
+#     while i < STANDARD_BLOCK_LENGTH:
+#         d = 0
+#         while d < len(saved_block_array_ys):
+#             if maximum == saved_block_array_xs[d] and new_block_ys[i] == saved_block_array_ys[d]:
+#                 return 1
+#             d += 1
+#         i += 1
+#     return 0
 
 
 
@@ -168,6 +168,21 @@ def print_background():
         y += 1
 
 
+def add_to_saved_blocks():
+    global saved_block_array_xs
+    global saved_block_array_ys
+    final_block_xs = []
+    final_block_ys = []
+    i = 0
+    while i < STANDARD_BLOCK_LENGTH:
+        final_block_xs.append(BLOCK_XS[block_index][rotation_index][i] + block_x)
+        final_block_ys.append(BLOCK_YS[block_index][rotation_index][i] + block_y)
+        i += 1
+    saved_block_array_xs = saved_block_array_xs + final_block_xs
+    saved_block_array_ys = saved_block_array_ys + final_block_ys
+
+
+
 
 # MAIN GAME LOOP BELOW
 
@@ -176,48 +191,60 @@ while game_run == 1:
     screen.clear()
     print_background()
     block_x += bump_amount(BLOCK_XS[block_index][rotation_index])
-    if frame % MOVE_FRAME == 0:
-        block_y += 1
-    result = board_bottom_check(BLOCK_YS[block_index][rotation_index], BLOCK_XS[block_index][rotation_index], block_y)
-    if result['past_bottom']:
-        block_y = grid_height - result['current_pos'] - 1
 
-    if 'collision_y' in result or result['past_bottom']:
-        final_block_xs = []
-        final_block_ys = []
-        i = 0
-        while i < STANDARD_BLOCK_LENGTH:
-            final_block_xs.append(BLOCK_XS[block_index][rotation_index][i] + block_x)
-            final_block_ys.append(BLOCK_YS[block_index][rotation_index][i] + block_y)
-            i += 1
-        saved_block_array_xs = saved_block_array_xs + final_block_xs
-        saved_block_array_ys = saved_block_array_ys + final_block_ys
-        block_index = random.randint(0, 6)
-        block_y = 0
+
+
+
+    # result = board_bottom_check(BLOCK_YS[block_index][rotation_index], BLOCK_XS[block_index][rotation_index], block_y)
+    # if result['past_bottom']:
+    #     block_y = grid_height - result['current_pos'] - 1
+    #
+    # if 'collision_y' in result or result['past_bottom']:
+    #     final_block_xs = []
+    #     final_block_ys = []
+    #     i = 0
+    #     while i < STANDARD_BLOCK_LENGTH:
+    #         final_block_xs.append(BLOCK_XS[block_index][rotation_index][i] + block_x)
+    #         final_block_ys.append(BLOCK_YS[block_index][rotation_index][i] + block_y)
+    #         i += 1
+    #     saved_block_array_xs = saved_block_array_xs + final_block_xs
+    #     saved_block_array_ys = saved_block_array_ys + final_block_ys
+    #     block_index = random.randint(0, 6)
+    #     block_y = 0
+
+
     draw_saved_blocks(block_x, block_y)
     draw_block(BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index], block_x, block_y)
     draw_debug()
     screen.refresh()
 
+
     try:
         move = screen.getkey()
+        curses.flushinp()
     except:
         move = ""
 
     if move == "w":
-        if moving_left_collision_check(BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index]) != -1:
-            block_x += moving_left_collision_check(BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index])
-        rotation_index = (rotation_index + 1) % 4
+        new_rotation_index = (rotation_index + 1) % 4
+        if not collision_check(block_x, block_y, BLOCK_XS[block_index][new_rotation_index], BLOCK_YS[block_index][new_rotation_index]):
+            rotation_index = (rotation_index + 1) % 4
 
     if move == "a":
-        if moving_left_collision_check(BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index]) == -1:
+        if not collision_check(block_x - 1, block_y, BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index]):
             block_x -= 1
 
     if move == "d":
-        block_x += 1
+        if not collision_check(block_x + 1, block_y, BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index]):
+            block_x += 1
 
-    if move == "s":
-        block_y += 1
+    if move == "s" or frame % MOVE_FRAME == 0:
+        if collision_check(block_x, block_y + 1, BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index]):
+            add_to_saved_blocks()
+            block_index = random.randint(0, 6)
+            block_y = 0
+        else:
+            block_y += 1
 
     if move == "q":
         game_run = 0
