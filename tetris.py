@@ -183,6 +183,20 @@ def add_to_saved_blocks():
 
 
 
+def completed_row_check():
+    i = 0
+    while i < len(saved_block_array_ys):
+        matches = [y for y in saved_block_array_ys if y == i]
+        if len(matches) == grid_width:
+            return True
+        i += 1
+
+    return False
+
+
+
+
+
 
 # MAIN GAME LOOP BELOW
 
@@ -191,28 +205,6 @@ while game_run == 1:
     screen.clear()
     print_background()
     block_x += bump_amount(BLOCK_XS[block_index][rotation_index])
-
-
-
-
-    # result = board_bottom_check(BLOCK_YS[block_index][rotation_index], BLOCK_XS[block_index][rotation_index], block_y)
-    # if result['past_bottom']:
-    #     block_y = grid_height - result['current_pos'] - 1
-    #
-    # if 'collision_y' in result or result['past_bottom']:
-    #     final_block_xs = []
-    #     final_block_ys = []
-    #     i = 0
-    #     while i < STANDARD_BLOCK_LENGTH:
-    #         final_block_xs.append(BLOCK_XS[block_index][rotation_index][i] + block_x)
-    #         final_block_ys.append(BLOCK_YS[block_index][rotation_index][i] + block_y)
-    #         i += 1
-    #     saved_block_array_xs = saved_block_array_xs + final_block_xs
-    #     saved_block_array_ys = saved_block_array_ys + final_block_ys
-    #     block_index = random.randint(0, 6)
-    #     block_y = 0
-
-
     draw_saved_blocks(block_x, block_y)
     draw_block(BLOCK_XS[block_index][rotation_index], BLOCK_YS[block_index][rotation_index], block_x, block_y)
     draw_debug()
@@ -247,6 +239,9 @@ while game_run == 1:
             block_y += 1
 
     if move == "q":
+        game_run = 0
+
+    if completed_row_check():
         game_run = 0
 
 
